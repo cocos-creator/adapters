@@ -14,6 +14,6 @@
         ]
     },
     "dependencies": {
-        "quickgame-cli": "^0.1.10"
+        "quickgame-cli": "0.1.21"
     }
 }
