@@ -2,6 +2,8 @@ const _utils = require('../../../../common/utils');
 
 const MAX_AMOUNT_WEBSOCKET = 1  // The maximum number of WEBSOCKET
 let CURR_AMOUNT_WEBSOCKET = 0   // The current number of WEBSOCKET
+let _support_multi_websocket = false
+const _socketTask = new WeakMap()
 
 export default class WebSocket {
   static CONNECTING = 0 // The connection is not yet open.
@@ -28,79 +30,117 @@ export default class WebSocket {
   readyState = 3
 
   constructor(url, protocols = []) {
-    if(this._isMaxCount()){
+    if (!_support_multi_websocket && this._isMaxCount()) {
       console.warn(`Failed to construct 'WebSocket': Only ${CURR_AMOUNT_WEBSOCKET} WebSocket can be created at the same time on TaoBao.`);
       return this;
     }
 
-    if (typeof url !== 'string' || !(/(^ws:\/\/)|(^wss:\/\/)/).test(url)) {
+    if (typeof url !== 'string' || !(/(^wss:\/\/)/).test(url)) {
       throw new TypeError(`Failed to construct 'WebSocket': The URL '${url}' is invalid`)
     }
 
     this.url = url
     this.readyState = WebSocket.CONNECTING
-    this._increaseCount();
 
-    my.connectSocket({
+    const socketTask = my.connectSocket({
       url,
+      multiple: true,
       fail: function fail(res) {
         this._triggerEvent('error', res)
       }
     })
+    _support_multi_websocket = socketTask !== undefined;
+    if (_support_multi_websocket) {
+      _socketTask.set(this, socketTask)
+      socketTask.onClose((res) => {
+        this.readyState = WebSocket.CLOSED
+        this._triggerEvent('close', res)
+      })
 
-    this._onOpen = (res) => {
-      this.readyState = WebSocket.OPEN
-      this._triggerEvent('open')
-    }
-    my.onSocketOpen(this._onOpen)
+      socketTask.onMessage((res) => {
+        this._triggerEvent('message', res)
+      })
 
-    this._onMessage = (res) => {
-      if (res && res.data && res.isBuffer) {
-        res.data = _utils.base64ToArrayBuffer(res.data)
+      socketTask.onOpen(() => {
+        this.readyState = WebSocket.OPEN
+        this._triggerEvent('open', res)
+      })
+
+      socketTask.onError((res) => {
+        this._triggerEvent('error', res)
+      })
+    } else {
+      this._increaseCount();
+      this._onOpen = (res) => {
+        this.readyState = WebSocket.OPEN
+        this._triggerEvent('open')
       }
-      this._triggerEvent('message', res)
-    }
-    my.onSocketMessage(this._onMessage)
+      my.onSocketOpen(this._onOpen)
 
-    this._onError = (res) => {
-      this._triggerEvent('error', res)
-      this._decreaseCount();
-    }
-    my.onSocketError(this._onError)
+      this._onMessage = (res) => {
+        if (res && res.data && res.isBuffer) {
+          res.data = _utils.base64ToArrayBuffer(res.data)
+        }
+        this._triggerEvent('message', res)
+      }
+      my.onSocketMessage(this._onMessage)
 
-    this._onClose = (res) => {
-      this.readyState = WebSocket.CLOSED
-      this._triggerEvent('close')
-      this._removeAllSocketListenr()
-      this._decreaseCount();
+      this._onError = (res) => {
+        this._triggerEvent('error', res)
+        this._decreaseCount();
+      }
+      my.onSocketError(this._onError)
+
+      this._onClose = (res) => {
+        this.readyState = WebSocket.CLOSED
+        this._triggerEvent('close')
+        this._removeAllSocketListenr()
+        this._decreaseCount();
+      }
+      my.onSocketClose(this._onClose)
     }
-    my.onSocketClose(this._onClose)
 
     return this
   }
 
-  close() {
+  close(code, reason) {
     this.readyState = WebSocket.CLOSING
-    my.closeSocket()
+    if (_support_multi_websocket) {
+      const socketTask = _socketTask.get(this)
+      socketTask.close({
+        code,
+        reason
+      });
+    } else {
+      my.closeSocket()
+    }
   }
 
   send(data) {
     if (typeof data !== 'string' && !(data instanceof ArrayBuffer) && !ArrayBuffer.isView(data)) {
       throw new TypeError(`Failed to send message: The data ${data} is invalid`)
-    }else{
+    } else {
       var isBuffer = false;
       if (data instanceof ArrayBuffer) {
-          data = _utils.arrayBufferToBase64(data)
-          isBuffer = true
+        data = _utils.arrayBufferToBase64(data)
+        isBuffer = true
       }
-  
-      my.sendSocketMessage({
+
+      if (_support_multi_websocket) {
+        const socketTask = _socketTask.get(this)
+        socketTask.send({
+          data,
+          isBuffer
+        });
+      } else {
+        my.sendSocketMessage({
           data,
           isBuffer,
           fail: function (res) {
             this._triggerEvent('error', res)
           }
-      });
+        });
+      }
     }
   }
 
@@ -110,7 +150,7 @@ export default class WebSocket {
     }
   }
 
-  _removeAllSocketListenr(){
+  _removeAllSocketListenr() {
     my.offSocketOpen(this._onOpen)
     my.offSocketMessage(this._onMessage)
     my.offSocketError(this._onError)
@@ -122,18 +162,18 @@ export default class WebSocket {
     this._onClose = null
   }
 
-  _increaseCount(){
+  _increaseCount() {
     CURR_AMOUNT_WEBSOCKET += 1
   }
 
-  _decreaseCount(){
-    if(!this._isReduced){
+  _decreaseCount() {
+    if (!this._isReduced) {
       CURR_AMOUNT_WEBSOCKET -= 1
       this._isReduced = true
     }
   }
 
-  _isMaxCount(){
+  _isMaxCount() {
     return CURR_AMOUNT_WEBSOCKET >= MAX_AMOUNT_WEBSOCKET
   }
 }
