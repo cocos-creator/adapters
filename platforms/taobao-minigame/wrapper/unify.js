@@ -12,6 +12,20 @@ if (window.__globalAdapter) {
     utils.cloneMethod(globalAdapter, my, 'onTouchEnd');
     utils.cloneMethod(globalAdapter, my, 'onTouchCancel');
 
+    if (my.onWindowResize) {
+        my.onWindowResize(function (res) {
+            if (res) {
+                window.innerWidth = res.windowWidth;
+                window.innerHeight = res.windowHeight;
+                const screen = window.screen;
+                screen.width = res.windowWidth;
+                screen.height = res.windowHeight;
+                screen.availWidth = res.windowWidth;
+                screen.availHeight = res.windowHeight;
+            }
+        });
+    }
+
     // Audio
     globalAdapter.createInnerAudioContext = function () {
         let audio = my.createInnerAudioContext();
