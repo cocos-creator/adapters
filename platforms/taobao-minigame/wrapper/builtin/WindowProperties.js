@@ -1,4 +1,4 @@
-const { pixelRatio, windowWidth, windowHeight } = my.getSystemInfoSync()
+const { pixelRatio, windowWidth, windowHeight } = my.getWindowInfoSync()
 const devicePixelRatio = pixelRatio;
 
 let width, height;
