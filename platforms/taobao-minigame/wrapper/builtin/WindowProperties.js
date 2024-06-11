@@ -6,14 +6,13 @@ let width, height;
   width = windowWidth;
   height = windowHeight;
 }
-export const innerWidth = width;
-export const innerHeight = height;
+
 export { devicePixelRatio }
 export const screen = {
   width,
   height,
-  availWidth: innerWidth,
-  availHeight: innerHeight,
+  availWidth: width,
+  availHeight: height,
   availLeft: 0,
   availTop: 0,
 }

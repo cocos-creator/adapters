@@ -14,15 +14,7 @@ if (window.__globalAdapter) {
 
     if (my.onWindowResize) {
         my.onWindowResize(function (res) {
-            if (res) {
-                window.innerWidth = res.windowWidth;
-                window.innerHeight = res.windowHeight;
-                const screen = window.screen;
-                screen.width = res.windowWidth;
-                screen.height = res.windowHeight;
-                screen.availWidth = res.windowWidth;
-                screen.availHeight = res.windowHeight;
-            }
+            window.dispatchEvent('resize');
         });
     }
 
@@ -88,17 +80,15 @@ if (window.__globalAdapter) {
 
     // Accelerometer
     let accelerometerCallback = null;
-    let systemInfo = my.getSystemInfoSync();
-    let windowWidth = systemInfo.windowWidth;
-    let windowHeight = systemInfo.windowHeight;
-    let isLandscape = windowWidth > windowHeight;
+    
     function accelerometerChangeCallback (res, cb) {
         let resClone = {};
 
         let x = res.x;
         let y = res.y;
 
-        if (isLandscape) {
+        let windowInfo = my.getWindowInfoSync();
+        if (windowInfo.windowWidth > windowInfo.windowHeight) {
             let tmp = x;
             x = -y;
             y = tmp;
