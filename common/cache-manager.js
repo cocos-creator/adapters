@@ -208,7 +208,11 @@ var cacheManager = {
             return a.lastTime - b.lastTime;
         });
         caches.length = Math.floor(caches.length / 3);
-        if (caches.length === 0) return;
+        if (caches.length === 0) {
+            cleaning = false;
+            console.warn("Please check for large files or multiple large files being downloaded simultaneously.");
+            return;
+        }
         for (var i = 0, l = caches.length; i < l; i++) {
             this.cachedFiles.remove(caches[i].originUrl);
         }
