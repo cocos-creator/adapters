@@ -297,17 +297,23 @@ cc.audioEngine = {
 
     
     stopMusic: function () {
-        this._music.stop();
+        if (this._music) {
+            this._music.stop();
+        }
     },
 
     
     pauseMusic: function () {
-        this._music.pause();     
+        if (this._music) {
+            this._music.pause();
+        }     
     },
 
     
     resumeMusic: function () {
-        this._music.resume();
+        if (this._music) {
+            this._music.resume();
+        }
     },
     
     getMusicVolume: function () {
@@ -325,6 +331,9 @@ cc.audioEngine = {
     },
     
     isMusicPlaying: function () {
+        if (!this._music) {
+            return false;
+        }
         return this._music.getState() === Audio.State.PLAYING;
     },
     
@@ -334,11 +343,11 @@ cc.audioEngine = {
     
     setEffectsVolume: function (volume) {
         volume = handleVolume(volume);
-        var musicId = this._music.id;
+        var musicId = this._music?.id;
         this._effectVolume = volume;
         for (var id in _id2audio) {
             var audio = _id2audio[id];
-            if (!audio || audio.id === musicId) continue;
+            if (!audio || !musicId || audio.id === musicId) continue;
             audio.setVolume(volume);
         }
     },
@@ -352,10 +361,10 @@ cc.audioEngine = {
     },
     
     pauseAllEffects: function () {
-        var musicId = this._music.id;
+        var musicId = this._music?.id;
         for (var id in _id2audio) {
             var audio = _id2audio[id];
-            if (!audio || audio.id === musicId) continue;
+            if (!audio || !musicId || audio.id === musicId) continue;
             audio.pause();
         }
     },
@@ -365,10 +374,10 @@ cc.audioEngine = {
     },
     
     resumeAllEffects: function () {
-        var musicId = this._music.id;
+        var musicId = this._music?.id;
         for (var id in _id2audio) {
             var audio = _id2audio[id];
-            if (!audio || audio.id === musicId) continue;
+            if (!audio || !musicId || audio.id === musicId) continue;
             audio.resume();
         }     
     },
@@ -378,10 +387,10 @@ cc.audioEngine = {
     },
     
     stopAllEffects: function () {
-        var musicId = this._music.id;
+        var musicId = this._music?.id;
         for (var id in _id2audio) {
             var audio = _id2audio[id];
-            if (!audio || audio.id === musicId) continue;
+            if (!audio || !musicId || audio.id === musicId) continue;
             audio.stop();
         } 
     }
