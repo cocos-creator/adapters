@@ -83,9 +83,6 @@ downloader.register({
     '.tiff' : doNothing,
     '.image' : doNothing,
     '.webp' : doNothing,
-    '.pvr': doNothing,
-    '.pkm': doNothing,
-    '.astc': doNothing,
 });
 
 parser.register({
