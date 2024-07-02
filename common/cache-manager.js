@@ -209,10 +209,10 @@ var cacheManager = {
         });
         caches.length = Math.floor(caches.length / 3);
         // cache length above 3 then clear 1/3， or clear all caches
-        if(caches.length < 3){
+        if (caches.length < 3) {
             console.warn("Due to caching large files in the game, there is insufficient storage space. Now starting forced cleaning.");
         }
-        else{
+        else {
             caches.length = Math.floor(caches.length / 3);
         }
         for (var i = 0, l = caches.length; i < l; i++) {
@@ -223,12 +223,12 @@ var cacheManager = {
             function deferredDelete () {
                 var item = caches.pop();
                 if (self._isZipFile(item.originUrl)) {
-                    if (self._isZipFile(item.url)){
-                      deleteFile(item.url, self._deleteFileCB.bind(self));
+                    if (self._isZipFile(item.url)) {
+                        deleteFile(item.url, self._deleteFileCB.bind(self));
                     }
-                    else{
-                      rmdirSync(item.url, true);
-                      self._deleteFileCB();
+                    else {
+                        rmdirSync(item.url, true);
+                        self._deleteFileCB();
                     }
                 }
                 else {
@@ -252,12 +252,12 @@ var cacheManager = {
             var path = this.cachedFiles.remove(url).url;
             this.writeCacheFile(function () {
                 if (self._isZipFile(url)) {
-                    if (self._isZipFile(path)){
-                      deleteFile(path, self._deleteFileCB.bind(self));
+                    if (self._isZipFile(path)) {
+                        deleteFile(path, self._deleteFileCB.bind(self));
                     }
-                    else{
-                      rmdirSync(path, true);
-                      self._deleteFileCB();
+                    else {
+                        rmdirSync(path, true);
+                        self._deleteFileCB();
                     }
                 }
                 else {
