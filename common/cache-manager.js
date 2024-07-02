@@ -208,10 +208,12 @@ var cacheManager = {
             return a.lastTime - b.lastTime;
         });
         caches.length = Math.floor(caches.length / 3);
-        if (caches.length === 0) {
-            cleaning = false;
-            console.warn("Please check for large files or multiple large files being downloaded simultaneously.");
-            return;
+        // 大于3则清理1/3， 小于等于3则全部清理
+        if(caches.length < 3){
+            console.warn("Due to caching large files in the game, there is insufficient storage space. Now starting forced cleaning.");
+        }
+        else{
+            caches.length = Math.floor(caches.length / 3);
         }
         for (var i = 0, l = caches.length; i < l; i++) {
             this.cachedFiles.remove(caches[i].originUrl);
@@ -221,8 +223,13 @@ var cacheManager = {
             function deferredDelete () {
                 var item = caches.pop();
                 if (self._isZipFile(item.originUrl)) {
-                    rmdirSync(item.url, true);
-                    self._deleteFileCB();
+                    if (self._isZipFile(item.url)){
+                      deleteFile(item.url, self._deleteFileCB.bind(self));
+                    }
+                    else{
+                      rmdirSync(item.url, true);
+                      self._deleteFileCB();
+                    }
                 }
                 else {
                     deleteFile(item.url, self._deleteFileCB.bind(self));
@@ -245,8 +252,13 @@ var cacheManager = {
             var path = this.cachedFiles.remove(url).url;
             this.writeCacheFile(function () {
                 if (self._isZipFile(url)) {
-                    rmdirSync(path, true);
-                    self._deleteFileCB();
+                    if (self._isZipFile(path)){
+                      deleteFile(path, self._deleteFileCB.bind(self));
+                    }
+                    else{
+                      rmdirSync(path, true);
+                      self._deleteFileCB();
+                    }
                 }
                 else {
                     deleteFile(path, self._deleteFileCB.bind(self));
