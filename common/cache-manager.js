@@ -210,7 +210,7 @@ var cacheManager = {
         caches.length = Math.floor(caches.length / 3);
         // cache length above 3 then clear 1/3， or clear all caches
         if (caches.length < 3) {
-            console.warn("Due to caching large files in the game, there is insufficient storage space. Now starting forced cleaning.");
+            console.warn('Insufficient storage, cleaning now');
         }
         else {
             caches.length = Math.floor(caches.length / 3);
@@ -222,18 +222,7 @@ var cacheManager = {
         this.writeCacheFile(function () {
             function deferredDelete () {
                 var item = caches.pop();
-                if (self._isZipFile(item.originUrl)) {
-                    if (self._isZipFile(item.url)) {
-                        deleteFile(item.url, self._deleteFileCB.bind(self));
-                    }
-                    else {
-                        rmdirSync(item.url, true);
-                        self._deleteFileCB();
-                    }
-                }
-                else {
-                    deleteFile(item.url, self._deleteFileCB.bind(self));
-                }
+                self._removePathOrFile(item.originUrl, item.url);
                 if (caches.length > 0) { 
                     setTimeout(deferredDelete, self.deleteInterval); 
                 }
@@ -251,19 +240,21 @@ var cacheManager = {
             var self = this;
             var path = this.cachedFiles.remove(url).url;
             this.writeCacheFile(function () {
-                if (self._isZipFile(url)) {
-                    if (self._isZipFile(path)) {
-                        deleteFile(path, self._deleteFileCB.bind(self));
-                    }
-                    else {
-                        rmdirSync(path, true);
-                        self._deleteFileCB();
-                    }
-                }
-                else {
-                    deleteFile(path, self._deleteFileCB.bind(self));
-                }
+                self._removePathOrFile(url, path);
             });
+        }
+    },
+
+    _removePathOrFile (sourcePath, targetPath) {
+        if (this._isZipFile(sourcePath)) {
+            if (this._isZipFile(targetPath)) {
+                deleteFile(targetPath, this._deleteFileCB.bind(this));
+            } else {
+                rmdirSync(targetPath, true);
+                this._deleteFileCB();
+            }
+        } else {
+            deleteFile(targetPath, this._deleteFileCB.bind(this));
         }
     },
 
