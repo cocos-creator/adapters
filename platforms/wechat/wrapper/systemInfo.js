@@ -30,20 +30,20 @@ Object.assign(adapter, {
         // We need to set sys.platform first before calling adaptSysFunc.
         adaptSysFunc.call(this, sys);
 
-        var loader = new Promise(function (resolve, reject) {
+        let loader = new Promise(function (resolve, reject) {
             // HACK: webp base64 doesn't support on Wechat Android, which reports some internal error log.
             if (sys.os === sys.OS_ANDROID) {
                 sys.capabilities.webp = false;
                 return;
             }
             try {
-                var img = document.createElement('img');
-                var timer = setTimeout(function () {
+                let img = document.createElement('img');
+                let timer = setTimeout(function () {
                     resolve(false);
                 }, 500);
                 img.onload = function onload() {
                     clearTimeout(timer);
-                    var result = img.width > 0 && img.height > 0;
+                    let result = img.width > 0 && img.height > 0;
                     resolve(result);
                 };
                 img.onerror = function onerror(err) {
