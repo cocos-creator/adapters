@@ -1,5 +1,3 @@
-import { innerWidth, innerHeight } from './WindowProperties'
-
 function Canvas () {}
 
 let CanvasProxy = new Proxy(Canvas, {
@@ -26,8 +24,8 @@ let CanvasProxy = new Proxy(Canvas, {
     canvas.style = {
       top: '0px',
       left: '0px',
-      width: innerWidth + 'px',
-      height: innerHeight + 'px',
+      width: window.innerWidth + 'px',
+      height: window.innerHeight + 'px',
     }
   
     canvas.addEventListener = function (type, listener, options = {}) {

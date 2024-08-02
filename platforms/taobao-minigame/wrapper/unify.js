@@ -12,6 +12,12 @@ if (window.__globalAdapter) {
     utils.cloneMethod(globalAdapter, my, 'onTouchEnd');
     utils.cloneMethod(globalAdapter, my, 'onTouchCancel');
 
+    if (my.onWindowResize) {
+        my.onWindowResize(function (res) {
+            window.dispatchEvent('resize');
+        });
+    }
+
     // Audio
     globalAdapter.createInnerAudioContext = function () {
         let audio = my.createInnerAudioContext();
@@ -74,17 +80,15 @@ if (window.__globalAdapter) {
 
     // Accelerometer
     let accelerometerCallback = null;
-    let systemInfo = my.getSystemInfoSync();
-    let windowWidth = systemInfo.windowWidth;
-    let windowHeight = systemInfo.windowHeight;
-    let isLandscape = windowWidth > windowHeight;
+    
     function accelerometerChangeCallback (res, cb) {
         let resClone = {};
 
         let x = res.x;
         let y = res.y;
 
-        if (isLandscape) {
+        let windowInfo = my.getWindowInfoSync();
+        if (windowInfo.windowWidth > windowInfo.windowHeight) {
             let tmp = x;
             x = -y;
             y = tmp;
